@@ -4,50 +4,50 @@ variables:
 - group: toDo-App
 
 stages:
-    - stage: SoftwareCompositionAnalysis
-      displayName: Software Composition Analysis
-
-      jobs:
-      - job: DependencyVulnerabilityScan
-        displayName: Dependency Vulnerability Scan (Retire.js)
-
-        steps:
-        - task: PowerShell@2
-          
-          inputs:
-            targetType: 'inline'
-            script: |
-                cd $(frontendPath)
-                npm install
-                npm install --save-dev retire
-                npx retire --outputformat json --outputpath retire-report.json --severity high
-            
-          displayName: 'Retire.js Install and Run'
-
-    # - stage: StaticCodeAnalysis
-    #   displayName: Static Code Analysis (SonarQube)
+    # - stage: SoftwareCompositionAnalysis
+    #   displayName: Software Composition Analysis
 
     #   jobs:
-    #       - job: SonarQubeScan
-    #         displayName: SonarQube Scan
+    #   - job: DependencyVulnerabilityScan
+    #     displayName: Dependency Vulnerability Scan (Retire.js)
 
-    #         steps:
-    #         - task: SonarQubePrepare@8
-    #           inputs:
-    #             SonarQube: 'SonarCloud'
-    #             scannerMode: 'cli'
-    #             configMode: 'manual'
-    #             cliProjectKey: 'BhabyaBharti_ToDo-App'
-    #             cliProjectName: 'ToDo-App'
-    #             cliSources: '.'
+    #     steps:
+    #     - task: PowerShell@2
+          
+    #       inputs:
+    #         targetType: 'inline'
+    #         script: |
+    #             cd $(frontendPath)
+    #             npm install
+    #             npm install --save-dev retire
+    #             npx retire --outputformat json --outputpath retire-report.json --severity high
+            
+    #       displayName: 'Retire.js Install and Run'
 
-    #         - task: SonarQubeAnalyze@8
-    #           inputs:
-    #             jdkversion: 'JAVA_HOME_17_X64'
+    - stage: StaticCodeAnalysis
+      displayName: Static Code Analysis (SonarQube)
 
-    #         - task: SonarQubePublish@8
-    #           inputs:
-    #             pollingTimeoutSec: '300'
+      jobs:
+          - job: SonarQubeScan
+            displayName: SonarQube Scan
+
+            steps:
+            - task: SonarQubePrepare@8
+              inputs:
+                SonarQube: 'SonarCloud'
+                scannerMode: 'cli'
+                configMode: 'manual'
+                cliProjectKey: 'BhabyaBharti_ToDo-App'
+                cliProjectName: 'ToDo-App'
+                cliSources: '.'
+
+            - task: SonarQubeAnalyze@8
+              inputs:
+                jdkversion: 'JAVA_HOME_17_X64'
+
+            - task: SonarQubePublish@8
+              inputs:
+                pollingTimeoutSec: '300'
 
     # - stage: CodeQualityChecks
     #   displayName: Code Quality & Linting
