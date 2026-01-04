@@ -260,37 +260,37 @@ stages:
     #       displayName: 'Install and Run Hadolint'
 
     # - stage: BuildAndPackage
-      displayName: Build & Artifact Packaging
+      # displayName: Build & Artifact Packaging
       
-      jobs:
-          - job: FrontendApplicationBuild
-            displayName: Frontend Application Build
+      # jobs:
+      #     - job: FrontendApplicationBuild
+      #       displayName: Frontend Application Build
             
-            steps:
-            - task: NodeTool@0
-              displayName: Set Up Node.js Environment
-              inputs:
-                versionSource: 'spec'
-                versionSpec: '16.x'
+      #       steps:
+      #       - task: NodeTool@0
+      #         displayName: Set Up Node.js Environment
+      #         inputs:
+      #           versionSource: 'spec'
+      #           versionSpec: '16.x'
             
-            - task: PowerShell@2
-              displayName: Install Dependencies
-              inputs:
-                  targetType: inline
-                  script: 'npm install'
+      #       - task: PowerShell@2
+      #         displayName: Install Dependencies
+      #         inputs:
+      #             targetType: inline
+      #             script: 'npm install'
 
-            - task: PowerShell@2
-              displayName: Build Application
-              inputs:
-                  targetType: inline
-                  script: 'npm run build'
+      #       - task: PowerShell@2
+      #         displayName: Build Application
+      #         inputs:
+      #             targetType: inline
+      #             script: 'npm run build'
 
-            - task: PublishPipelineArtifact@1
-              inputs:
-                targetPath: '$(System.DefaultWorkingDirectory)/build/'
-                artifact: 'todo-ui'
-                publishLocation: 'pipeline'
+      #       - task: PublishPipelineArtifact@1
+      #         inputs:
+      #           targetPath: '$(System.DefaultWorkingDirectory)/build/'
+      #           artifact: 'todo-ui'
+      #           publishLocation: 'pipeline'
 
-        #   - job: BackendApplicationBuild
-        #     displayName: Backend Application Build
+      #   #   - job: BackendApplicationBuild
+      #   #     displayName: Backend Application Build
 
