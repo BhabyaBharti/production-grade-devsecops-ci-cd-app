@@ -76,6 +76,11 @@ stages:
     - stage: StaticCodeAnalysis
       displayName: Static Code Analysis (SonarQube)
 
+      pool:
+        name: sh-app-delivery-pool
+        demands:
+          - java
+
       jobs:
       - job: SonarQubeScan
         displayName: SonarQube Scan
