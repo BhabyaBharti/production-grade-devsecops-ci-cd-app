@@ -30,6 +30,11 @@ parameters:
     type: boolean
     default: false
 
+pool:
+  name: sh-app-delivery-pool
+  demands:
+    - Agent.Name -equals app-delivery-agent
+
 stages:
     - stage: SoftwareCompositionAnalysis
       displayName: Software Composition Analysis
