@@ -76,16 +76,19 @@ stages:
     - stage: StaticCodeAnalysis
       displayName: Static Code Analysis (SonarQube)
 
-      pool:
-        name: sh-app-delivery-pool
-        demands:
-          - java
 
       jobs:
       - job: SonarQubeScan
         displayName: SonarQube Scan
 
         steps:
+
+        - task: JavaToolInstaller@1
+          displayName: Install Java
+          inputs:
+            versionSpec: '17'
+            jdkArchitectureOption: 'x64'
+            jdkSourceOption: 'PreInstalled'
         - task: SonarQubePrepare@8
           inputs:
             SonarQube: 'SonarCloud'
