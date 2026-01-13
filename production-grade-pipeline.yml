@@ -504,7 +504,7 @@ stages:
 
     - stage: DeployToDev
       displayName: Deploy to Dev environment
-      condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+      #condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
 
       jobs:
         - deployment: DeployToDev
