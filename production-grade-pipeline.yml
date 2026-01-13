@@ -450,20 +450,12 @@ stages:
         #     versionSpec: '3.10'
         #     addToPath: true
         #     architecture: 'x64'
-        - task: PowerShell@2
-          displayName: 'Install Python'
+
+        - task: UsePythonVersion@0
           inputs:
-            targetType: 'inline'
-            script: |
-              # Download and install Python silently
-              $url = "https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe"
-              $installer = "C:\Windows\Temp\python-setup.exe"
-              
-              Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing
-              Start-Process -FilePath $installer -ArgumentList "/quiet InstallAllUsers=1 PrependPath=1" -Wait
-              
-              # Force PATH update
-              $env:Path = "$env:Path;C:\Python310;C:\Python310\Scripts"
+            versionSpec: '3.10'
+            addToPath: true
+            architecture: 'x64'
 
         - task: PowerShell@2
           displayName: Install Python Dependencies
