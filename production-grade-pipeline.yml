@@ -439,188 +439,150 @@ stages:
     #         artifact: 'todo-ui'
     #         publishLocation: 'pipeline'
 
-    - stage: BuildAndPackage
-      displayName: Build & Artifact Packaging
+    # - stage: BuildAndPackage
+    #   displayName: Build & Artifact Packaging
       
-      jobs:
-      - job: BackendApplicationBuild
-        displayName: Backend Application Build
-        steps:
+    #   jobs:
+    #   - job: BackendApplicationBuild
+    #     displayName: Backend Application Build
+    #     steps:
         
-        - task: PowerShell@2
-          displayName: 'Agent me Python Setup Karo'
-          inputs:
-            targetType: 'inline'
-            script: |
-              Write-Host "=== Agent ke liye Alag Python Install ==="
+    #     - task: PowerShell@2
+    #       displayName: 'Agent me Python Setup Karo'
+    #       inputs:
+    #         targetType: 'inline'
+    #         script: |
+    #           Write-Host "=== Agent ke liye Alag Python Install ==="
               
-              # Agent ke workspace me Python rakho
-              $agentPythonPath = "$(Agent.ToolsDirectory)\python-3.10"
-              $pythonExe = "$agentPythonPath\python.exe"
+    #           # Agent ke workspace me Python rakho
+    #           $agentPythonPath = "$(Agent.ToolsDirectory)\python-3.10"
+    #           $pythonExe = "$agentPythonPath\python.exe"
               
-              Write-Host "Python rakha jayega: $agentPythonPath"
+    #           Write-Host "Python rakha jayega: $agentPythonPath"
               
-              # Agar pehle se nahi hai to download karo
-              if (-not (Test-Path $pythonExe)) {
-                Write-Host "Downloading Python for agent..."
+    #           # Agar pehle se nahi hai to download karo
+    #           if (-not (Test-Path $pythonExe)) {
+    #             Write-Host "Downloading Python for agent..."
                 
-                # Python ka zip download karo
-                $pythonZip = "https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip"
-                $zipPath = "$env:TEMP\python-agent.zip"
+    #             # Python ka zip download karo
+    #             $pythonZip = "https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip"
+    #             $zipPath = "$env:TEMP\python-agent.zip"
                 
-                Invoke-WebRequest -Uri $pythonZip -OutFile $zipPath -UseBasicParsing
+    #             Invoke-WebRequest -Uri $pythonZip -OutFile $zipPath -UseBasicParsing
                 
-                # Extract karo
-                New-Item -ItemType Directory -Path $agentPythonPath -Force | Out-Null
-                Expand-Archive -Path $zipPath -DestinationPath $agentPythonPath -Force
+    #             # Extract karo
+    #             New-Item -ItemType Directory -Path $agentPythonPath -Force | Out-Null
+    #             Expand-Archive -Path $zipPath -DestinationPath $agentPythonPath -Force
                 
-                # Pip ke liye setup
-                $getPipUrl = "https://bootstrap.pypa.io/get-pip.py"
-                $getPipPath = "$agentPythonPath\get-pip.py"
-                Invoke-WebRequest -Uri $getPipUrl -OutFile $getPipPath -UseBasicParsing
+    #             # Pip ke liye setup
+    #             $getPipUrl = "https://bootstrap.pypa.io/get-pip.py"
+    #             $getPipPath = "$agentPythonPath\get-pip.py"
+    #             Invoke-WebRequest -Uri $getPipUrl -OutFile $getPipPath -UseBasicParsing
                 
-                # Python310._pth file modify karo
-                $pthFile = "$agentPythonPath\python310._pth"
-                (Get-Content $pthFile) -replace "^#import site$", "import site" | Set-Content $pthFile
+    #             # Python310._pth file modify karo
+    #             $pthFile = "$agentPythonPath\python310._pth"
+    #             (Get-Content $pthFile) -replace "^#import site$", "import site" | Set-Content $pthFile
                 
-                # Pip install karo
-                & $pythonExe $getPipPath
+    #             # Pip install karo
+    #             & $pythonExe $getPipPath
                 
-                # Cleanup
-                Remove-Item $zipPath -Force
-                Remove-Item $getPipPath -Force
+    #             # Cleanup
+    #             Remove-Item $zipPath -Force
+    #             Remove-Item $getPipPath -Force
                 
-                Write-Host "✓ Agent Python setup complete!"
-              } else {
-                Write-Host "✓ Agent Python already exists"
-              }
+    #             Write-Host "✓ Agent Python setup complete!"
+    #           } else {
+    #             Write-Host "✓ Agent Python already exists"
+    #           }
               
-              # Verify
-              & $pythonExe --version
+    #           # Verify
+    #           & $pythonExe --version
               
-        - task: PowerShell@2
-          displayName: 'Dependencies Install Karo'
-          inputs:
-            targetType: 'inline'
-            script: |
-              # Agent Python use karo
-              $agentPythonPath = "$(Agent.ToolsDirectory)\python-3.10"
-              $pythonExe = "$agentPythonPath\python.exe"
-              $pipExe = "$agentPythonPath\Scripts\pip.exe"
+    #     - task: PowerShell@2
+    #       displayName: 'Dependencies Install Karo'
+    #       inputs:
+    #         targetType: 'inline'
+    #         script: |
+    #           # Agent Python use karo
+    #           $agentPythonPath = "$(Agent.ToolsDirectory)\python-3.10"
+    #           $pythonExe = "$agentPythonPath\python.exe"
+    #           $pipExe = "$agentPythonPath\Scripts\pip.exe"
               
-              Write-Host "Using Agent Python from: $agentPythonPath"
+    #           Write-Host "Using Agent Python from: $agentPythonPath"
               
-              # Project folder me jao
-              cd "PyTodoBackendMonolith"
+    #           # Project folder me jao
+    #           cd "PyTodoBackendMonolith"
               
-              # Dependencies install karo
-              if (Test-Path $pipExe) {
-                & $pipExe install -r requirements.txt
-              } else {
-                # Fallback
-                & $pythonExe -m pip install -r requirements.txt
-              }
+    #           # Dependencies install karo
+    #           if (Test-Path $pipExe) {
+    #             & $pipExe install -r requirements.txt
+    #           } else {
+    #             # Fallback
+    #             & $pythonExe -m pip install -r requirements.txt
+    #           }
               
-              if ($LASTEXITCODE -eq 0) {
-                Write-Host "✓ Sab dependencies install ho gaye!"
-              } else {
-                Write-Host "##vso[task.logissue type=error]Installation failed"
-                exit 1
-              }
+    #           if ($LASTEXITCODE -eq 0) {
+    #             Write-Host "✓ Sab dependencies install ho gaye!"
+    #           } else {
+    #             Write-Host "##vso[task.logissue type=error]Installation failed"
+    #             exit 1
+    #           }
               
-        - task: PublishPipelineArtifact@1
-          displayName: 'Backend Publish Karo'
-          inputs:
-            targetPath: '$(System.DefaultWorkingDirectory)/PyTodoBackendMonolith/'
-            artifact: 'todo-backend'
-            publishLocation: 'pipeline'
+    #     - task: PublishPipelineArtifact@1
+    #       displayName: 'Backend Publish Karo'
+    #       inputs:
+    #         targetPath: '$(System.DefaultWorkingDirectory)/PyTodoBackendMonolith/'
+    #         artifact: 'todo-backend'
+    #         publishLocation: 'pipeline'
 
-      # - job: BackendApplicationBuild
-      #   displayName: Backend Application Build
-      #   steps:
+    - stage: ApprovalGate
+      displayName: Appoval Gate
+      pool: server
 
-      #   - task: PowerShell@2
-      #     displayName: Install Python Dependencies
-      #     inputs:
-      #       targetType: 'inline'
-      #       script: |
-      #         Write-Host "=== Installing Python dependencies ==="
-      #         Write-Host "Current directory: $(Get-Location)"
-              
-      #         if (Test-Path "PyTodoBackendMonolith") {
-      #           cd "PyTodoBackendMonolith"
-      #           Write-Host "Changed to: $(Get-Location)"
-                
-      #           if (Test-Path "requirements.txt") {
-      #             Write-Host "Found requirements.txt"
-      #             Write-Host "Running pip install -r requirements.txt..."
-      #             pip install -r requirements.txt
-      #             if ($LASTEXITCODE -ne 0) {
-      #               Write-Host "##vso[task.logissue type=error]pip install failed"
-      #               exit 1
-      #             }
-      #           } else {
-      #             Write-Host "✗ requirements.txt not found"
-      #             Write-Host "Current directory contents:"
-      #             Get-ChildItem
-      #           }
-      #         } else {
-      #           Write-Host "✗ PyTodoBackendMonolith directory not found"
-      #           Write-Host "Available directories:"
-      #           Get-ChildItem
-      #           exit 1
-      #         }
+      jobs:
+        - job: ManualValidation
+          displayName: ManualValidation
+          steps:
+          - task: ManualValidation@1
+            inputs:
+              notifyUsers: 'devopscollab101@gmail.com'
+              onTimeout: 'resume'
 
-      #   - task: PublishPipelineArtifact@1
-      #     displayName: Publish Backend Artifacts
-      #     inputs:
-      #       targetPath: '$(System.DefaultWorkingDirectory)/PyTodoBackendMonolith/'
-      #       artifact: 'todo-backend'
-      #       publishLocation: 'pipeline'
+    - stage: DeployToDev
+      displayName: Deploy to Dev environment
+      #condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
 
-    # - stage: ApprovalGate
-    #   displayName: Appoval Gate
-    #   pool: server
+      jobs:
+        - deployment: DeployFrontendToDev
+          displayName: Deploy To Dev
 
-    #   jobs:
-    #     - job: ManualValidation
-    #       displayName: ManualValidation
-    #       steps:
-    #       - task: ManualValidation@1
-    #         inputs:
-    #           notifyUsers: 'devopscollab101@gmail.com'
-    #           onTimeout: 'resume'
+          environment:
+            name: dev
+            resourceName: 'frontendv31WMYP'
+            resourceType: virtualMachine
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    buildType: 'specific'
+                    project: '8b8cab46-ede3-44b6-a546-5442c39ab271'
+                    pipeline: '40'
+                    specificBuildWithTriggering: true
+                    buildVersionToDownload: 'specific'
+                    buildId: '630'
+                    downloadType: 'single'
+                    artifactName: 'todo-ui'
+                    downloadPath: '$(Build.SourcesDirectory)/build_ui_artefacts'
+                - task: Bash@3
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      sudo cp -r $(System.DefaultWorkingDirectory)/build_ui_artefacts/* /var/www/html/
+                            sudo chown -R www-data:www-data /var/www/html
 
-    # - stage: DeployToDev
-    #   displayName: Deploy to Dev environment
-    #   #condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+        - deployment: DeployBackendToDev
+          displayName: Deploy Backend To Dev
 
-    #   jobs:
-    #     - deployment: DeployToDev
-    #       displayName: Deploy To Dev
-
-    #       environment:
-    #         name: dev
-    #         resourceName: 'frontendv31WMYP'
-    #         resourceType: virtualMachine
-    #       strategy:
-    #         runOnce:
-    #           deploy:
-    #             steps:
-    #             - task: DownloadBuildArtifacts@1
-    #               inputs:
-    #                 buildType: 'specific'
-    #                 project: '8b8cab46-ede3-44b6-a546-5442c39ab271'
-    #                 pipeline: '40'
-    #                 specificBuildWithTriggering: true
-    #                 buildVersionToDownload: 'specific'
-    #                 buildId: '630'
-    #                 downloadType: 'single'
-    #                 artifactName: 'todo-ui'
-    #                 downloadPath: '$(Build.SourcesDirectory)/build_ui_artefacts'
-    #             - task: Bash@3
-    #               inputs:
-    #                 targetType: 'inline'
-    #                 script: |
-    #                   sudo cp -r $(System.DefaultWorkingDirectory)/build_ui_artefacts/* /var/www/html/
-    #                         sudo chown -R www-data:www-data /var/www/html
+          environment: 
