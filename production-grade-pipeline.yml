@@ -609,6 +609,7 @@ stages:
                   inputs:
                     targetType: 'inline'
                     script: |
+                      sudo mkdir /home/authusersai123/backendArtifacts
                       sudo cp -r $(System.DefaultWorkingDirectory)/build_ui_artefacts/* /var/www/html/
                             sudo chown -R www-data:www-data /home/authusersai123/backendArtifacts
 
