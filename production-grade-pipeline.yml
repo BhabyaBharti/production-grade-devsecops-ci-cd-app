@@ -443,62 +443,97 @@ stages:
       displayName: Build & Artifact Packaging
       
       jobs:
-      - job: BuildBackend
-        displayName: Build Backend
+      - job: BackendApplicationBuild
+        displayName: Backend Application Build
         steps:
+        
         - task: PowerShell@2
-          displayName: Install Python Dependencies
+          displayName: 'Agent me Python Setup Karo'
           inputs:
             targetType: 'inline'
             script: |
-              Write-Host "=== Setting up portable Python ==="
+              Write-Host "=== Agent ke liye Alag Python Install ==="
               
-              # Define paths in user's temp directory (no admin rights needed)
-              $pythonDir = "$env:TEMP\portable-python-3.10"
-              $pythonExe = "$pythonDir\python.exe"
-              $requirementsPath = "PyTodoBackendMonolith\requirements.txt"
+              # Agent ke workspace me Python rakho
+              $agentPythonPath = "$(Agent.ToolsDirectory)\python-3.10"
+              $pythonExe = "$agentPythonPath\python.exe"
               
-              # Download portable Python if not already present
+              Write-Host "Python rakha jayega: $agentPythonPath"
+              
+              # Agar pehle se nahi hai to download karo
               if (-not (Test-Path $pythonExe)) {
-                Write-Host "Downloading portable Python..."
+                Write-Host "Downloading Python for agent..."
                 
-                # Download from official source (embedable package)
-                $pythonUrl = "https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip"
-                $zipPath = "$env:TEMP\python-embed.zip"
+                # Python ka zip download karo
+                $pythonZip = "https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip"
+                $zipPath = "$env:TEMP\python-agent.zip"
                 
-                # Use TLS 1.2 for secure download
-                [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                Invoke-WebRequest -Uri $pythonUrl -OutFile $zipPath -UseBasicParsing
+                Invoke-WebRequest -Uri $pythonZip -OutFile $zipPath -UseBasicParsing
                 
-                # Extract to temp directory
-                Expand-Archive -Path $zipPath -DestinationPath $pythonDir -Force
+                # Extract karo
+                New-Item -ItemType Directory -Path $agentPythonPath -Force | Out-Null
+                Expand-Archive -Path $zipPath -DestinationPath $agentPythonPath -Force
                 
-                # Download get-pip.py for pip installation
+                # Pip ke liye setup
                 $getPipUrl = "https://bootstrap.pypa.io/get-pip.py"
-                $getPipPath = "$pythonDir\get-pip.py"
+                $getPipPath = "$agentPythonPath\get-pip.py"
                 Invoke-WebRequest -Uri $getPipUrl -OutFile $getPipPath -UseBasicParsing
                 
-                # Install pip
-                Write-Host "Installing pip..."
-                & $pythonExe $getPipPath --user
+                # Python310._pth file modify karo
+                $pthFile = "$agentPythonPath\python310._pth"
+                (Get-Content $pthFile) -replace "^#import site$", "import site" | Set-Content $pthFile
                 
-                # Clean up
-                Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
-                Remove-Item $getPipPath -Force -ErrorAction SilentlyContinue
+                # Pip install karo
+                & $pythonExe $getPipPath
+                
+                # Cleanup
+                Remove-Item $zipPath -Force
+                Remove-Item $getPipPath -Force
+                
+                Write-Host "✓ Agent Python setup complete!"
+              } else {
+                Write-Host "✓ Agent Python already exists"
               }
               
-              Write-Host "Using portable Python from: $pythonDir"
+              # Verify
+              & $pythonExe --version
               
-              # Install dependencies using portable Python
+        - task: PowerShell@2
+          displayName: 'Dependencies Install Karo'
+          inputs:
+            targetType: 'inline'
+            script: |
+              # Agent Python use karo
+              $agentPythonPath = "$(Agent.ToolsDirectory)\python-3.10"
+              $pythonExe = "$agentPythonPath\python.exe"
+              $pipExe = "$agentPythonPath\Scripts\pip.exe"
+              
+              Write-Host "Using Agent Python from: $agentPythonPath"
+              
+              # Project folder me jao
               cd "PyTodoBackendMonolith"
-              & $pythonExe -m pip install --user -r requirements.txt
               
-              if ($LASTEXITCODE -ne 0) {
-                Write-Host "##vso[task.logissue type=error]Dependency installation failed"
+              # Dependencies install karo
+              if (Test-Path $pipExe) {
+                & $pipExe install -r requirements.txt
+              } else {
+                # Fallback
+                & $pythonExe -m pip install -r requirements.txt
+              }
+              
+              if ($LASTEXITCODE -eq 0) {
+                Write-Host "✓ Sab dependencies install ho gaye!"
+              } else {
+                Write-Host "##vso[task.logissue type=error]Installation failed"
                 exit 1
               }
               
-              Write-Host "Dependencies installed successfully!"
+        - task: PublishPipelineArtifact@1
+          displayName: 'Backend Publish Karo'
+          inputs:
+            targetPath: '$(System.DefaultWorkingDirectory)/PyTodoBackendMonolith/'
+            artifact: 'todo-backend'
+            publishLocation: 'pipeline'
 
       # - job: BackendApplicationBuild
       #   displayName: Backend Application Build
