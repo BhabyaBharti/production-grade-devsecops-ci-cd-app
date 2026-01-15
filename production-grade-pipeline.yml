@@ -553,38 +553,38 @@ stages:
       #condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
 
       jobs:
-        - deployment: DeployFrontendToDev
-          displayName: Deploy To Dev
+        # - deployment: DeployFrontendToDev
+        #   displayName: Deploy To Dev
 
-          environment:
-            name: frontendDev
-            resourceName: 'frontendv4YKREE'
-            resourceType: virtualMachine
-          strategy:
-            runOnce:
-              deploy:
-                steps:
-                - task: DownloadBuildArtifacts@1
-                  inputs:
-                    buildType: 'specific'
-                    project: '8b8cab46-ede3-44b6-a546-5442c39ab271'
-                    pipeline: '40'
-                    specificBuildWithTriggering: true
-                    buildVersionToDownload: 'specific'
-                    buildId: '630'
-                    downloadType: 'single'
-                    artifactName: 'todo-ui'
-                    downloadPath: '$(Build.SourcesDirectory)/build_ui_artefacts'
-                - task: Bash@3
-                  inputs:
-                    targetType: 'inline'
-                    script: |
-                      sudo cp -r $(System.DefaultWorkingDirectory)/build_ui_artefacts/* /var/www/html/
-                            sudo chown -R www-data:www-data /var/www/html
+        #   environment:
+        #     name: frontendDev
+        #     resourceName: 'frontendv4YKREE'
+        #     resourceType: virtualMachine
+        #   strategy:
+        #     runOnce:
+        #       deploy:
+        #         steps:
+        #         - task: DownloadBuildArtifacts@1
+        #           inputs:
+        #             buildType: 'specific'
+        #             project: '8b8cab46-ede3-44b6-a546-5442c39ab271'
+        #             pipeline: '40'
+        #             specificBuildWithTriggering: true
+        #             buildVersionToDownload: 'specific'
+        #             buildId: '630'
+        #             downloadType: 'single'
+        #             artifactName: 'todo-ui'
+        #             downloadPath: '$(Build.SourcesDirectory)/build_ui_artefacts'
+        #         - task: Bash@3
+        #           inputs:
+        #             targetType: 'inline'
+        #             script: |
+        #               sudo cp -r $(System.DefaultWorkingDirectory)/build_ui_artefacts/* /var/www/html/
+        #                     sudo chown -R www-data:www-data /var/www/html
 
         - deployment: DeployBackendToDev
           displayName: Deploy Backend To Dev
-          dependsOn: DeployFrontendToDev
+          # dependsOn: DeployFrontendToDev
 
           environment:
             name: backendDev
