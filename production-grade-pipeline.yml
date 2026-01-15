@@ -451,51 +451,54 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              Write-Host "=== Installing Python dependencies ==="
-              Write-Host "Current directory: $(Get-Location)"
+              Write-Host "=== Setting up portable Python ==="
               
-              # Check if Python is available
-              $pythonCmd = "python"
-              if (-not (Get-Command $pythonCmd -ErrorAction SilentlyContinue)) {
-                    # Try python3
-                $pythonCmd = "python3"
-                if (-not (Get-Command $pythonCmd -ErrorAction SilentlyContinue)) {
-                  Write-Host "##vso[task.logissue type=error]Python not found in PATH"
-                  Write-Host "Available commands:"
-                  Get-Command | Select-Object Name | Out-Host
-                  exit 1
-                }
-              }
-          
-                  Write-Host "Using Python command: $pythonCmd"
-                  
-                  if (Test-Path "PyTodoBackendMonolith") {
-                    cd "PyTodoBackendMonolith"
-                    Write-Host "Changed to: $(Get-Location)"
+              # Define paths in user's temp directory (no admin rights needed)
+              $pythonDir = "$env:TEMP\portable-python-3.10"
+              $pythonExe = "$pythonDir\python.exe"
+              $requirementsPath = "PyTodoBackendMonolith\requirements.txt"
+              
+              # Download portable Python if not already present
+              if (-not (Test-Path $pythonExe)) {
+                Write-Host "Downloading portable Python..."
                 
-                if (Test-Path "requirements.txt") {
-                  Write-Host "Found requirements.txt"
-                  Write-Host "Running pip install -r requirements.txt..."
-                  
-                  # Use python -m pip instead of just pip
-                  & $pythonCmd -m pip install --upgrade pip
-                  & $pythonCmd -m pip install -r requirements.txt
-                  
-                  if ($LASTEXITCODE -ne 0) {
-                    Write-Host "##vso[task.logissue type=error]pip install failed"
-                    exit 1
-                  }
-                } else {
-                  Write-Host "✗ requirements.txt not found"
-                  Write-Host "Current directory contents:"
-                  Get-ChildItem
-                }
-              } else {
-                Write-Host "✗ PyTodoBackendMonolith directory not found"
-                Write-Host "Available directories:"
-                Get-ChildItem
+                # Download from official source (embedable package)
+                $pythonUrl = "https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip"
+                $zipPath = "$env:TEMP\python-embed.zip"
+                
+                # Use TLS 1.2 for secure download
+                [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                Invoke-WebRequest -Uri $pythonUrl -OutFile $zipPath -UseBasicParsing
+                
+                # Extract to temp directory
+                Expand-Archive -Path $zipPath -DestinationPath $pythonDir -Force
+                
+                # Download get-pip.py for pip installation
+                $getPipUrl = "https://bootstrap.pypa.io/get-pip.py"
+                $getPipPath = "$pythonDir\get-pip.py"
+                Invoke-WebRequest -Uri $getPipUrl -OutFile $getPipPath -UseBasicParsing
+                
+                # Install pip
+                Write-Host "Installing pip..."
+                & $pythonExe $getPipPath --user
+                
+                # Clean up
+                Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
+                Remove-Item $getPipPath -Force -ErrorAction SilentlyContinue
+              }
+              
+              Write-Host "Using portable Python from: $pythonDir"
+              
+              # Install dependencies using portable Python
+              cd "PyTodoBackendMonolith"
+              & $pythonExe -m pip install --user -r requirements.txt
+              
+              if ($LASTEXITCODE -ne 0) {
+                Write-Host "##vso[task.logissue type=error]Dependency installation failed"
                 exit 1
               }
+              
+              Write-Host "Dependencies installed successfully!"
 
       # - job: BackendApplicationBuild
       #   displayName: Backend Application Build
