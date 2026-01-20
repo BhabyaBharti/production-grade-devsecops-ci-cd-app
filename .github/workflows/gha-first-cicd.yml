@@ -15,5 +15,5 @@ jobs:
         run: echo "${{ secrets.KV_KEY }}"
 
       - name: Using Condition
-        if: github.event_name == 'push'
+        if: github.event_name != 'push'
         run: echo "Condition Met"
