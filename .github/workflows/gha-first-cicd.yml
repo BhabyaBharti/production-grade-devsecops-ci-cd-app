@@ -13,3 +13,7 @@ jobs:
 
       - name: Call Secret
         run: echo "${{ secrets.KV_KEY }}"
+
+      - name: Using Condition
+        run: Call Secret
+        if: github.event_name == 'push'
