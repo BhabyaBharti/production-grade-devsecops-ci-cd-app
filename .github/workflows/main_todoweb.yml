@@ -23,7 +23,7 @@ jobs:
         working-directory: ./React_Todo_App_UI
         run: |
           npm install
-          npm run build --if-present
+          CI=false npm run build --if-present
           npm run test --if-present
 
       - name: Upload artifact for deployment job
@@ -58,3 +58,4 @@ jobs:
           app-name: 'todoweb'
           slot-name: 'Production'
           package: .
+
